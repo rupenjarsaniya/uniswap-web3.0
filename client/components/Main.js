@@ -1,8 +1,14 @@
-import React from "react";
+import React, { useContext } from "react";
 import Image from "next/image";
 import { RiSettings3Fill } from "react-icons/ri";
 import { AiOutlineDown } from "react-icons/ai";
 import ethLogo from "../assets/eth.png";
+import { TransactionContext } from "../context/TransactionContext";
+import Modal from "react-modal";
+import { useRouter } from "next/router";
+import TransactionLoader from "./TransactionLoader";
+
+Modal.setAppElement("#__next");
 
 const style = {
     wrapper: `w-screen flex items-center justify-center mt-14`,
@@ -15,10 +21,37 @@ const style = {
     currencySelectorIcon: `flex items-center`,
     currencySelectorTicker: `mx-2`,
     currencySelectorArrow: `text-lg`,
-    confirmButton: `bg-[#2172E5] my-2 rounded-2xl py-6 px-8 text-xl font-semibold flex items-center justify-center cursor-pointer border border-[#2172E5] hover:border-[#234169]`,
+    confirmButton: `bg-[#2172E5] my-2 rounded-2xl py-6 px-8 text-xl font-semibold flex items-center justify-center cursor-pointer border border-[#2172E5] hover:border-[#234169] opacity-80 hover:opacity-100`,
+};
+
+const customStyles = {
+    content: {
+        top: "50%",
+        left: "50%",
+        right: "auto",
+        bottom: "auto",
+        transform: "translate(-50%, -50%)",
+        backgroundColor: "#0a0b0d",
+        padding: 0,
+        border: "none",
+    },
+    overlay: {
+        backgroundColor: "rgba(10, 11, 13, 0.75)",
+    },
 };
 
 const Main = () => {
+    const { sendTransaction, handleChange, formData } =
+        useContext(TransactionContext);
+    const router = useRouter();
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        const { addressTo, amount } = formData;
+        if (!addressTo || !amount) return;
+        await sendTransaction();
+    };
+
     return (
         <div className={style.wrapper}>
             <div className={style.content}>
@@ -31,10 +64,11 @@ const Main = () => {
                 <div className={style.transferPropContainer}>
                     <input
                         type="text"
+                        name="amount"
                         className={style.transferPropInput}
                         placeholder="0.0"
                         pattern="^[0-9]*[.,]?[0-9]*$"
-                        onChange={(e) => handleChange(e, "amount")}
+                        onChange={(e) => handleChange(e)}
                     />
                     <div className={style.currencySelector}>
                         <div className={style.currencySelectorContent}>
@@ -60,7 +94,8 @@ const Main = () => {
                         type="text"
                         className={style.transferPropInput}
                         placeholder="0x..."
-                        onChange={(e) => handleChange(e, "addressTo")}
+                        name="addressTo"
+                        onChange={(e) => handleChange(e)}
                     />
                     <div className={style.currencySelector}></div>
                 </div>
@@ -71,9 +106,9 @@ const Main = () => {
                     Confirm
                 </div>
             </div>
-            {/* <Modal isOpen={!!router.query.loading} style={customStyles}>
+            <Modal isOpen={!!router.query.loading} style={customStyles}>
                 <TransactionLoader />
-            </Modal> */}
+            </Modal>
         </div>
     );
 };
